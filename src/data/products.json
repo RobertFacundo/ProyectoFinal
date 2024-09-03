@@ -1,0 +1,16 @@
+[
+  {
+    "id": "fcf57f76-0e58-45ec-b71a-c6b916854e96",
+    "title": "Producto Actualizado",
+    "description": "Auriculares con cancelación de ruido y batería de larga duración.",
+    "code": "AUR12345",
+    "price": 150,
+    "status": true,
+    "stock": 20,
+    "category": "Electrónica",
+    "thumbnails": [
+      "https://example.com/images/auriculares1.jpg",
+      "https://example.com/images/auriculares2.jpg"
+    ]
+  }
+]
