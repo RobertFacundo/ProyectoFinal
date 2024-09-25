@@ -1,11 +1,27 @@
 const fs = require('fs'); // Requiere el módulo 'fs' para manejar la lectura y escritura de archivos.
 const { v4: uuidv4 } = require('uuid'); // Requiere la librería 'uuid' para generar identificadores únicos.
+const path = require('path');
 
 class ProductManager {
     constructor(filePath) {
-        this.filePath = filePath; // Guarda la ruta del archivo JSON donde se almacenan los productos.
+        this.filePath = path.join(__dirname, '../data/products.json'); 
+        this.init();
     }
 
+    async init() {
+        try {
+            // Verifica si el archivo existe
+            if (!fs.existsSync(this.filePath)) {
+                // Si no existe, crea un archivo con un arreglo vacío
+                await fs.promises.writeFile(this.filePath, JSON.stringify([]));
+                console.log(`Archivo creado en ${this.filePath}`);
+            } else {
+                console.log(`Archivo encontrado en ${this.filePath}`);
+            }
+        } catch (error) {
+            console.error('Error al inicializar el ProductManager:', error);
+        }
+    }
 
     // Método para obtener todos los productos.
     async getAllProducts() {
