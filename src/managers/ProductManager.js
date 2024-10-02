@@ -1,93 +1,96 @@
-const fs = require('fs'); // Requiere el módulo 'fs' para manejar la lectura y escritura de archivos.
-const { v4: uuidv4 } = require('uuid'); // Requiere la librería 'uuid' para generar identificadores únicos.
-const path = require('path');
+import fs from 'fs/promises'; // Importamos el módulo fs/promises
+import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
 
 class ProductManager {
     constructor(filePath) {
-        this.filePath = path.join(__dirname, '../data/products.json'); 
+        this.filePath = path.resolve(filePath);
         this.init();
+        console.log('Ruta del archivo de productos:!!', this.filePath);
     }
 
     async init() {
         try {
             // Verifica si el archivo existe
-            if (!fs.existsSync(this.filePath)) {
-                // Si no existe, crea un archivo con un arreglo vacío
-                await fs.promises.writeFile(this.filePath, JSON.stringify([]));
-                console.log(`Archivo creado en ${this.filePath}`);
-            } else {
-                console.log(`Archivo encontrado en ${this.filePath}`);
-            }
+            await fs.access(this.filePath);
+            console.log(`Ruta del archivo de productos: ${this.filePath} desde el init`);
         } catch (error) {
-            console.error('Error al inicializar el ProductManager:', error);
+            console.error(`Error al acceder al archivo: ${error.message}`);
+            // Si no existe, crear un archivo vacío
+            await fs.writeFile(this.filePath, JSON.stringify([])); // Crear el archivo vacío
+            console.log(`Archivo creado en: ${this.filePath}`);
         }
     }
 
-    // Método para obtener todos los productos.
     async getAllProducts() {
         try {
-            const data = await fs.promises.readFile(this.filePath, 'utf-8'); // Lee el archivo de productos.
-            return JSON.parse(data); // Convierte el contenido del archivo en un objeto JSON.
+            const data = await fs.readFile(this.filePath, 'utf-8'); // Cambia fsPromises a fs
+            const products = JSON.parse(data);
+
+            if (products.length === 0) {
+                console.log('Archivo encontrado y leído... sin productos');
+            }
+
+            return products;
         } catch (error) {
+            console.error('Error al leer el archivo de productos:', error);
             return [];
         }
     }
 
-    // Método para obtener un producto por su ID.
     async getProductsById(id) {
+        const products = await this.getAllProducts();
+        return products.find(p => p.id === id);
+    }
+
+    async addProduct(product) {
+        console.log('Intentando agregar producto:', product);
         try {
             const products = await this.getAllProducts();
-            const product = products.find(p => p.id === id);
-            return product || null;
+            const newProduct = {
+                id: uuidv4(),
+                ...product
+            };
+            products.push(newProduct);
+            await fs.writeFile(this.filePath, JSON.stringify(products, null, 2));
+            console.log('Producto agregado satisfactoriamente:', newProduct);
+            return newProduct;
         } catch (error) {
-            console.error('Error al obtener el producto por ID:', error);
-            return null;
+            console.error('Error al agregar el producto:', error);
         }
     }
 
-    // Método para agregar un nuevo producto.
-    async addProduct({ title, description = '', code = '', price, status = true, stock = 0, category = '', thumbnails = [] }) {
-        const products = await this.getAllProducts();
-        const newProduct = {
-            id: uuidv4(),
-            title,
-            description,
-            code,
-            price,
-            status,
-            stock,
-            category,
-            thumbnails
+    async updatedProduct(id, updatedData) {
+        try {
+            console.log('Actualizando producto')
+            const products = await this.getAllProducts();
+            const productIndex = products.findIndex(p => p.id === id);
+
+            // Verifica si el producto no se encontró
+            if (productIndex === -1) {
+                console.log('Producto no encontrado'); // O puedes lanzar un error
+                return null;
+            }
+            console.log('Actualizando producto')
+            // Actualiza el producto
+            products[productIndex] = { ...products[productIndex], ...updatedData };
+            await fs.writeFile(this.filePath, JSON.stringify(products, null, 2)); // Cambia fsPromises a fs
+            console.log('Producto actualizado:', products[productIndex]);
+
+            return products[productIndex];
+        } catch (error) {
+            console.error('Error al actualizar el producto:', error); // Maneja el error
+            throw new Error('No se pudo actualizar el producto'); // Lanza un error para manejarlo más arriba en la pila de llamadas, si es necesario
         }
-        products.push(newProduct);
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
-        return newProduct;
     }
 
-
-    // Método para actualizar un producto existente.
-    async updatedProduct(id, updatedFields) {
-        const products = await this.getAllProducts();
-        const index = products.findIndex(p => p.id === id);
-        if (index === -1) return null;
-
-        products[index] = { ...products[index], ...updatedFields };
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
-        return products[index];
-    }
-
-    // Método para eliminar un producto por su ID.
     async deleteProduct(id) {
-        let products = await this.getAllProducts();
-        const productoAEliminar = products.find(p => p.id === id);
-        if (!productoAEliminar) {
-            return null;
-        }
-        products = products.filter(p => p.id !== id);
-        await fs.promises.writeFile(this.filePath, JSON.stringify(products, null, 2));
-
-        return productoAEliminar;
+        console.log(`Eliminando producto ${id} desde la pestaña realtimeproducts...`)
+        const products = await this.getAllProducts();
+        const updatedProducts = products.filter(p => p.id !== id);
+        await fs.writeFile(this.filePath, JSON.stringify(updatedProducts, null, 2)); // Cambia fsPromises a fs
+        console.log('Producto eliminado !');
     }
 }
 
-module.exports = ProductManager;
+export default ProductManager;

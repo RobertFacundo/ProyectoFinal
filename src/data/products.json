@@ -1,1 +1,40 @@
-[]
+[
+  {
+    "id": "3c209331-525e-4f9f-a740-a361c0de1b07",
+    "title": "Nuevo Producto",
+    "description": "Descripción del producto",
+    "code": "NP001",
+    "price": 150,
+    "status": true,
+    "stock": 25,
+    "category": "Electrónica",
+    "thumbnails": [
+      "image1.jpg",
+      "image2.jpg"
+    ]
+  },
+  {
+    "id": "3879019f-0efc-419c-9eb8-47ef9c36e061",
+    "title": "Teclado Mecánico",
+    "description": "Teclado mecánico con retroiluminación RGB y switches personalizados.",
+    "code": "TM600",
+    "price": 89,
+    "status": true,
+    "stock": 30,
+    "category": "Periféricos",
+    "thumbnails": [
+      "teclado1.jpg",
+      "teclado2.jpg"
+    ]
+  },
+  {
+    "id": "445ce72e-3346-460f-ad07-7cfd935d66a0",
+    "title": "Taza",
+    "price": 1500
+  },
+  {
+    "id": "dd6ae711-9db1-4eaa-9678-8707c33c7c52",
+    "title": "Nuevisimo producto",
+    "price": 3000
+  }
+]

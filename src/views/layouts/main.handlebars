@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/styles.css">
     <title>{{title}}</title>
 </head>
 <body>
     {{{body}}} <!-- Aquí se insertarán las vistas que utilizan este layout -->
 </body>
+<script src="/socket.io/socket.io.js"></script>
+<!-- Cargar el script externo para manejar los productos en tiempo real -->
+<script src="/js/realtime-products.js"></script>
 </html>

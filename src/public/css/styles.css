@@ -1,0 +1,96 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #ffffff; /* Fondo blanco */
+    color: #333; /* Texto en gris oscuro para un mejor contraste */
+}
+
+h1 {
+    color: #d70000; /* Rojo vibrante */
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+ul {
+    list-style-type: none; /* Eliminar puntos de la lista */
+    padding: 0;
+    display: flex; /* Usar flexbox para alinear productos */
+    flex-wrap: wrap; /* Permitir que los productos se envuelvan en la siguiente línea */
+    justify-content: center; /* Centrar productos */
+    margin-bottom: 20px;
+}
+
+li {
+    background-color: #f0f0f0; /* Fondo gris claro para los productos */
+    border-radius: 5px;
+    padding: 10px;
+    margin: 10px; /* Espaciado entre productos */
+    width: calc(25% - 20px); /* Ancho del producto (4 productos por fila) */
+    min-width: 200px; /* Asegurarse de que los productos tengan un ancho mínimo */
+    text-align: center; /* Centrar texto */
+    transition: transform 0.3s, box-shadow 0.3s; /* Efecto de transformación suave */
+    cursor: pointer; /* Cambiar el cursor al pasar sobre el producto */
+}
+
+li:hover {
+    transform: scale(1.05); /* Agrandar ligeramente al pasar el mouse */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Agregar sombra al pasar el mouse */
+}
+
+.product-title {
+    font-weight: bold; /* Hacer el título más prominente */
+}
+
+.product-price {
+    color: #d70000; /* Precio en rojo */
+}
+
+button {
+    background-color: #d70000; /* Botones rojos */
+    color: white; /* Texto en blanco */
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer; /* Cambiar el cursor al pasar sobre el botón */
+    transition: background-color 0.3s; /* Efecto de transición suave para el fondo */
+}
+
+button:hover {
+    background-color: #b00000; /* Rojo más oscuro al pasar el mouse */
+}
+
+form {
+    text-align: center; /* Centrar el formulario */
+    margin-top: 20px; /* Espaciado superior */
+}
+
+input {
+    padding: 10px;
+    margin: 5px;
+    border: 2px solid #333; /* Bordes oscuros */
+    border-radius: 5px;
+}
+
+input:focus { 
+    outline: none; /* Sin contorno */
+}
+
+a {
+    display: inline-block; /* Botones en línea */
+    margin: 5px;
+    padding: 10px 15px;
+    background-color: #333; /* Fondo oscuro para enlaces */
+    color: white; /* Texto en blanco */
+    border-radius: 5px;
+    text-decoration: none; /* Sin subrayado */
+    transition: background-color 0.3s; /* Efecto de transición suave */
+}
+
+a:hover {
+    background-color: #d70000; /* Rojo al pasar el mouse */
+}

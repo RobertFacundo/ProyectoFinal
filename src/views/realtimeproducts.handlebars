@@ -1,7 +1,11 @@
 <h1>Lista de Productos en Tiempo Real</h1>
 <ul id="productsList">
     {{#each products}}
-    <li>{{title}} - ${{price}}<button onclick="deleteProduct('{{id}}')">Eliminar</button></li>
+    <li>
+        <div class="product-title">{{title}}</div>
+        <div class="product-price">Precio: ${{price}}</div>
+        <button onclick="deleteProduct('{{id}}')">Eliminar</button>
+    </li>
     {{/each}}
 </ul>
 
@@ -11,7 +15,6 @@
     <input type="number" id="price" placeholder="Precio del producto" required>
     <button type="submit">Agregar Producto</button>
 </form>
-
-<script src="/socket.io/socket.io.js"></script>
-<!-- Cargar el script externo para manejar los productos en tiempo real -->
-<script src="/js/realtime-products.js"></script>
+<a href="/api/products">products</a>
+<a href="/api/carts">Carts</a>
+<a href="/">Home</a>

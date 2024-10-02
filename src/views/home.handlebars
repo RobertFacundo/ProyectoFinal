@@ -1,7 +1,12 @@
-
-    <h1>Lista de Productos</h1>
-    <ul>
-        {{#each products}}
-            <li>{{title}} - ${{price}}</li>
-        {{/each}}
-    </ul>
+<h1>Lista de Productos</h1>
+<ul id="productsList">
+    {{#each products}}
+    <li>
+        <div class="product-title">{{title}}</div>
+        <div class="product-price">Precio: ${{price}}</div>
+    </li>
+    {{/each}}
+</ul>
+<a href="/realtimeproducts">Real time products...</a>
+<a href="/api/products">products</a>
+<a href="/api/carts">Carts</a>
