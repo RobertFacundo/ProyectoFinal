@@ -1,14 +1,13 @@
 // products.js
 import express from 'express';
+import productManager from '../config/productManager.js'; 
+import path from 'path';
+import mongoose from 'mongoose';
+import __dirname from '../utils.js';
 
 const router = express.Router();
-let productManager; // Declarar la variable aquí
 let io;
 
-// Función para establecer el ProductManager
-function setProductManager(manager) {
-    productManager = manager;
-}
 
 // Obtener todos los productos
 router.get('/', async (req, res) => {
@@ -59,7 +58,7 @@ router.put('/:pid', async (req, res) => {
             const products = await productManager.getAllProducts();
             io.emit('updatedProducts', products);
         }
-        console.log('Producto modificado', updatedProduct)
+        console.log('Producto modificado:', updatedProduct)
     } else {
         res.status(404).json({ message: 'Producto no encontrado' });
     }
@@ -67,18 +66,42 @@ router.put('/:pid', async (req, res) => {
 
 // Eliminar un producto por su ID
 router.delete('/:pid', async (req, res) => {
-    await productManager.deleteProduct(req.params.pid);
-    res.status(204).end();
+    const productId = req.params.pid; // Obtener el ID del producto
 
-    if (io) {
-        const products = await productManager.getAllProducts(); // Asegúrate de usar await aquí
-        io.emit('updatedProducts', products); // Corregido a 'updatedProducts'
+    // Verificar si el ID es un ObjectId válido (solo si usas MongoDB)
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+        console.log(`ID inválido recibido: ${productId}`);
+        return res.status(400).json({ message: 'ID inválido' });
     }
-    console.log('Producto eliminado')
+
+    try {
+        // Intentar eliminar el producto
+        const deletedProduct = await productManager.deleteProduct(productId);
+        
+        if (!deletedProduct) {
+            console.log(`Producto no encontrado con ID: ${productId}`);
+            return res.status(404).json({ message: 'Producto no encontrado' });
+        }
+
+        // Emitir la actualización de productos si el socket está disponible
+        if (io) {
+            const products = await productManager.getAllProducts();
+            io.emit('updatedProducts', products);
+        }
+
+        console.log(`Producto con ID ${productId} eliminado`);
+        // Responder con un código de estado 204 (Sin contenido)
+        res.status(204).end();
+    } catch (error) {
+        console.error('Error al eliminar el producto:', error);
+        res.status(500).json({ success: false, message: 'Error al eliminar el producto', error });
+    }
 });
 
+
+// Establecer el servidor de sockets
 function setSocketServer(socketServer) {
     io = socketServer;
 }
 
-export { router, setSocketServer, setProductManager }; // Exporta usando ES Modules
+export { router, setSocketServer}; // Exporta usando ES Modules

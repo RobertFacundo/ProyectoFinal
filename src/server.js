@@ -5,10 +5,16 @@ import { create as createHandlebars } from 'express-handlebars'; // Usar importa
 import path from 'path'; 
 //importar archivo utils que soluciona la creacion del path
 import __dirname from './utils.js';
-import { router as productsRouter, setSocketServer, setProductManager } from './routes/products.js';
+import { router as productsRouter, setSocketServer} from './routes/products.js';
 import cartsRouter from './routes/carts.js'; // Importación de cartsRouter
-import ProductManager from './managers/ProductManager.js';
 
+import dotenv from 'dotenv'; // Importar dotenv
+import mongoose from 'mongoose';
+import productManager from './config/productManager.js';
+
+// Configurar dotenv
+dotenv.config(); // Cargar las variables de entorno
+console.log('USE_MONGODB:', process.env.USE_MONGODB); // Im
 
 // Configuración básica de Express
 const app = express();
@@ -16,8 +22,17 @@ const httpServer = createServer(app);
 const io = new SocketServer(httpServer);
 const PORT = 8080;
 
-// Crear una instancia de ProductManager
-const productManager = new ProductManager(path.join(__dirname, 'data/products.json')); 
+// Gestor a utilizar
+
+if (process.env.USE_MONGODB === 'true') {
+    try {
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('Conectado a MongoDB');
+    } catch (error) {
+        console.error('Error al conectar a MongoDB:', error);
+        process.exit(1);
+    }
+}
 
 // Configurar Handlebars
 const hbs = createHandlebars({
@@ -41,8 +56,6 @@ app.use('/api/carts', cartsRouter);
 // Inyectar el servidor de Socket.io en el router de productos
 setSocketServer(io);
 
-// Pasar la instancia de ProductManager al router de productos
-setProductManager(productManager);
 
 // Ruta para la página principal
 app.get('/', async (req, res) => {
