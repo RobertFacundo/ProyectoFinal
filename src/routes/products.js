@@ -58,7 +58,7 @@ router.put('/:pid', async (req, res) => {
             const products = await productManager.getAllProducts();
             io.emit('updatedProducts', products);
         }
-        console.log('Producto modificado:', updatedProduct)
+        console.log('Producto modificado!:', updatedProduct)
     } else {
         res.status(404).json({ message: 'Producto no encontrado' });
     }
