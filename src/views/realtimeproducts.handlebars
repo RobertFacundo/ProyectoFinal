@@ -1,4 +1,15 @@
 <h1>Lista de Productos en Tiempo Real</h1>
+<nav>
+    {{#if prevLink}}
+    <a href="{{prevLink}}">« Página Anterior</a>
+    {{/if}}
+
+    <span>{{page}} de {{totalPages}}</span>
+
+    {{#if nextLink}}
+    <a href="{{nextLink}}">Página Siguiente »</a>
+    {{/if}}
+</nav>
 <ul id="productsList">
     {{#each products}}
     <li>

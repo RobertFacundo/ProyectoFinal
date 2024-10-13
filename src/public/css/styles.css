@@ -41,13 +41,20 @@ li:hover {
     transform: scale(1.05); /* Agrandar ligeramente al pasar el mouse */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Agregar sombra al pasar el mouse */
 }
+.cat{
+    font-size: 11px;
+    font-style: italic;
+   text-align: left;
+}
 
 .product-title {
     font-weight: bold; /* Hacer el título más prominente */
+    margin-left: 10px; 
 }
 
 .product-price {
     color: #d70000; /* Precio en rojo */
+    margin-left: 10px; 
 }
 
 button {
@@ -93,4 +100,8 @@ a {
 
 a:hover {
     background-color: #d70000; /* Rojo al pasar el mouse */
+}
+
+nav{
+    text-align: center;
 }

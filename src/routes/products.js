@@ -1,6 +1,6 @@
 // products.js
 import express from 'express';
-import productManager from '../config/productManager.js'; 
+import productManager from '../config/productManager.js';
 import path from 'path';
 import mongoose from 'mongoose';
 import __dirname from '../utils.js';
@@ -11,10 +11,65 @@ let io;
 
 // Obtener todos los productos
 router.get('/', async (req, res) => {
-    const products = await productManager.getAllProducts();
-    res.json(products);
-    console.log('Productos encontrados:', products)
+    try {
+        const limit = parseInt(req.query.limit) || 10; // Establecer un límite predeterminado
+        const currentPage = parseInt(req.query.page) || 1; // Página predeterminada
+        const sort = req.query.sort; // 'asc' o 'desc' para ordenar
+        const query = req.query.category; // Filtrar por categoría
+
+        // Llamar al método getAllProducts del ProductManager
+        const { products, totalProducts, prevLink, nextLink, page } = await productManager.getAllProducts({
+            limit,
+            page: currentPage,
+            sort,
+            query
+        });
+
+        console.log('Respuesta del Product Manager:', { products, totalProducts, prevLink, nextLink });
+
+
+        // Calcular totalPages a partir de totalProducts
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Verificar si la página solicitada es válida
+        if (page > totalPages || page < 1) {
+            // Redirigir a la página 404
+            return res.status(404).render('404');
+        }
+
+        // Si hay parámetros de consulta, devolver los productos en JSON con el formato solicitado
+        if (req.query.limit || req.query.page || req.query.sort || req.query.category) {
+            return res.json({
+                status: 'success',
+                payload: products,
+                totalPages: totalPages,
+                prevPage: currentPage > 1 ? currentPage - 1 : null,
+                nextPage: currentPage < totalPages ? currentPage + 1 : null,
+                page: currentPage,
+                hasPrevPage: currentPage > 1,
+                hasNextPage: currentPage < totalPages,
+                prevLink: currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}` : null,
+                nextLink: currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}` : null,
+            });
+        }
+
+
+        console.log(products)
+        // Renderizar la vista de productos en caso contrario
+        res.render('home', {
+            products,
+            totalProducts,
+            prevLink,
+            nextLink,
+            page, // Aquí mantén 'page' para la paginación en la vista
+            totalPages: Math.ceil(totalProducts / limit),
+        });
+    } catch (error) {
+        console.error('Error al obtener productos:', error);
+        res.status(500).send('Error al obtener productos');
+    }
 });
+
 
 // Obtener un producto por su ID
 router.get('/:pid', async (req, res) => {
@@ -77,7 +132,7 @@ router.delete('/:pid', async (req, res) => {
     try {
         // Intentar eliminar el producto
         const deletedProduct = await productManager.deleteProduct(productId);
-        
+
         if (!deletedProduct) {
             console.log(`Producto no encontrado con ID: ${productId}`);
             return res.status(404).json({ message: 'Producto no encontrado' });
@@ -104,4 +159,4 @@ function setSocketServer(socketServer) {
     io = socketServer;
 }
 
-export { router, setSocketServer}; // Exporta usando ES Modules
+export { router, setSocketServer }; // Exporta usando ES Modules

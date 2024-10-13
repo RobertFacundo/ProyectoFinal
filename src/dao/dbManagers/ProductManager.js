@@ -3,16 +3,48 @@ import mongoose from 'mongoose';
 
 class ProductManager {
 
-    async getAllProducts() {
+    async getAllProducts({ limit, page, sort, query }) {
         try {
-            const products = await Product.find().lean(); // Usa Mongoose para encontrar todos los productos
-            console.log('Productos encontrados desde mongoDB:', products);
-            return products;
+            // Construir el filtro de la consulta
+            const filter = query ? { category: new RegExp(query, 'i') } : {};
+
+            // Determinar la opción de ordenamiento
+            const sortOption = sort === 'asc' ? { price: 1 } : sort === 'desc' ? { price: -1 } : {};
+
+            // Usar Mongoose paginate para obtener productos
+            const options = {
+                page,
+                limit,
+                sort: sortOption,
+            };
+
+            // Llamar al método paginate de Mongoose
+            const { docs: products, totalDocs: totalProducts } = await Product.paginate(filter, options);
+
+            // Obtener todas las categorías únicas de todos los productos
+            const allProducts = await Product.find({});
+            const categories = [...new Set(allProducts.map(product => product.category))];
+            console.log(categories)
+
+            // Enlaces de paginación
+            const totalPages = Math.ceil(totalProducts / limit);
+            const prevPage = page > 1 ? page - 1 : null;
+            const nextPage = page < totalPages ? page + 1 : null;
+
+            return {
+                products,
+                totalProducts,
+                prevLink: prevPage ? `?limit=${limit}&page=${prevPage}&sort=${sort || ''}&category=${query || ''}` : null,
+                nextLink: nextPage ? `?limit=${limit}&page=${nextPage}&sort=${sort || ''}&category=${query || ''}` : null,
+                page,
+                categories
+            };
         } catch (error) {
             console.error('Error al obtener productos:', error);
-            return [];
+            return { products: [], totalProducts: 0 };
         }
     }
+
 
     async getProductsById(id) {
         try {

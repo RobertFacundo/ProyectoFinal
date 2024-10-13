@@ -2,10 +2,10 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server as SocketServer } from 'socket.io';
 import { create as createHandlebars } from 'express-handlebars'; // Usar importación nombrada
-import path from 'path'; 
+import path from 'path';
 //importar archivo utils que soluciona la creacion del path
 import __dirname from './utils.js';
-import { router as productsRouter, setSocketServer} from './routes/products.js';
+import { router as productsRouter, setSocketServer } from './routes/products.js';
 import cartsRouter from './routes/carts.js'; // Importación de cartsRouter
 
 import dotenv from 'dotenv'; // Importar dotenv
@@ -39,7 +39,17 @@ const hbs = createHandlebars({
     extname: '.handlebars',
     layoutsDir: path.join(__dirname, 'views/layouts'), // Utilizar path para manejar las rutas
     defaultLayout: 'main',
+    runtimeOptions: {
+        allowProtoPropertiesByDefault: true,
+        allowProtoMethodsByDefault: true,
+    },
+    helpers: {
+        increment: (value) => {
+            return value + 1;
+        }
+    }
 });
+
 
 // Configurar el motor de plantillas
 app.engine('handlebars', hbs.engine);
@@ -60,8 +70,30 @@ setSocketServer(io);
 // Ruta para la página principal
 app.get('/', async (req, res) => {
     try {
-        const products = await productManager.getAllProducts();
-        res.render('home', { products });
+        const limit = parseInt(req.query.limit) || 10; // Establecer el límite predeterminado
+        const currentPage = parseInt(req.query.page) || 1; // Cambiar 'page' a 'currentPage'
+        const sort = req.query.sort; // Obtener el método de ordenamiento de los parámetros de consulta
+        const query = req.query.category; // Obtener la categoría para filtrar productos
+
+        // Llamar al método getAllProducts y desestructurar los productos
+        const { products, totalProducts, categories } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
+
+        // Calcular totalPages a partir de totalProducts
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Verificar si la página solicitada es válida
+        if (currentPage > totalPages || currentPage < 1) { // Usar 'currentPage' aquí
+            // Redirigir a la página 404
+            return res.status(404).render('404');
+        }
+
+
+        // Generar enlaces para la paginación
+        const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
+        const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
+
+        res.render('home', { products, prevLink, nextLink, totalPages, page: currentPage, categories }); // Pasar 'currentPage' a la vista
+        console.log(products);
     } catch (error) {
         console.error('Error al obtener productos:', error);
         res.status(500).send('Error al obtener productos');
@@ -71,8 +103,28 @@ app.get('/', async (req, res) => {
 // Ruta para la página de productos en tiempo real
 app.get('/realtimeproducts', async (req, res) => {
     try {
-        const products = await productManager.getAllProducts();
-        res.render('realtimeproducts', { products });
+        const limit = parseInt(req.query.limit) || 10; // Establecer el límite predeterminado
+        const currentPage = parseInt(req.query.page) || 1; // Establecer la página predeterminada
+        const sort = req.query.sort; // Obtener el método de ordenamiento de los parámetros de consulta
+        const query = req.query.category; // Obtener la categoría para filtrar productos
+
+        // Llamar al método getAllProducts y desestructurar los productos
+        const { products, totalProducts } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
+
+        // Calcular totalPages a partir de totalProducts
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        // Verificar si la página solicitada es válida
+        if (currentPage > totalPages || currentPage < 1) { // Usar 'currentPage' aquí
+            // Redirigir a la página 404
+            return res.status(404).render('404');
+        }
+
+        // Generar enlaces para la paginación
+        const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
+        const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
+
+        res.render('realtimeproducts', { products, prevLink, nextLink, totalPages, page: currentPage });
     } catch (error) {
         console.error('Error al obtener productos:', error);
         res.status(500).send('Error al obtener productos');
@@ -124,6 +176,22 @@ app.delete('/api/products/:id', async (req, res) => {
     io.emit('updatedProducts', updatedProducts);
     res.status(200).json({ message: 'Producto eliminado' });
 });
+
+
+//-----------------------------
+
+// Middleware para manejar 404
+app.use((req, res, next) => {
+    res.status(404).render('404'); // Renderiza la página de error 404
+});
+
+// Middleware para manejar errores generales
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Algo salió mal.'); // Puedes también renderizar otra plantilla aquí para errores 500.
+});
+//---------------------------
+
 
 // Iniciar el servidor
 httpServer.listen(PORT, () => {
