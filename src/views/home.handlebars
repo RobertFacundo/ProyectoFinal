@@ -3,14 +3,15 @@
 <a href="/realtimeproducts">Real time products...</a>
 <a href="/api/products">products</a>
 <a href="/api/carts">Carts</a>
+<a href="/">Home</a>
 
 <!-- Formulario de Filtros -->
 <form id="filterForm" method="GET" action="/">
     <label for="category">Categoría:</label>
     <select name="category" id="category">
         <option value="">Todas</option>
-         {{#each categories}}
-            <option value="{{this}}">{{this}}</option>
+        {{#each categories}}
+        <option value="{{this}}">{{this}}</option>
         {{/each}}
     </select>
 
@@ -41,12 +42,12 @@
 
 <nav>
     {{#if prevLink}}
-        <a href="{{prevLink}}">« Página Anterior</a>
+    <a href="{{prevLink}}">« Página Anterior</a>
     {{/if}}
-    
+
     <span>{{page}} de {{totalPages}}</span>
-    
+
     {{#if nextLink}}
-        <a href="{{nextLink}}">Página Siguiente »</a>
+    <a href="{{nextLink}}">Página Siguiente »</a>
     {{/if}}
 </nav>

@@ -7,8 +7,9 @@ import path from 'path';
 import __dirname from './utils.js';
 import { router as productsRouter, setSocketServer } from './routes/products.js';
 import cartsRouter from './routes/carts.js'; // Importación de cartsRouter
-
 import dotenv from 'dotenv'; // Importar dotenv
+
+import Product from './dao/models/Product.js';
 import mongoose from 'mongoose';
 import productManager from './config/productManager.js';
 
@@ -109,7 +110,7 @@ app.get('/realtimeproducts', async (req, res) => {
         const query = req.query.category; // Obtener la categoría para filtrar productos
 
         // Llamar al método getAllProducts y desestructurar los productos
-        const { products, totalProducts } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
+        const { products, totalProducts, categories } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
 
         // Calcular totalPages a partir de totalProducts
         const totalPages = Math.ceil(totalProducts / limit);
@@ -124,31 +125,63 @@ app.get('/realtimeproducts', async (req, res) => {
         const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
         const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
 
-        res.render('realtimeproducts', { products, prevLink, nextLink, totalPages, page: currentPage });
+        console.log('Renderizando /realtimeproducts')
+        res.render('realtimeproducts', { products, prevLink, nextLink, totalPages, page: currentPage, categories, limit });
     } catch (error) {
         console.error('Error al obtener productos:', error);
         res.status(500).send('Error al obtener productos');
     }
 });
 
+const queryParamsStore = {};
+
 // Configurar Socket.io para manejar eventos en tiempo real
 io.on('connection', (socket) => {
     console.log('Nuevo cliente conectado');
 
+    // Configurar los parámetros de consulta al conectarse
+    socket.on('setQueryParams', (params) => {
+        queryParamsStore[socket.id] = params; // Almacenar los parámetros por ID de socket
+    });
+
     socket.on('newProduct', async (product) => {
         try {
-            await productManager.addProduct(product);
-            const updatedProducts = await productManager.getAllProducts();
-            io.emit('updatedProducts', updatedProducts);
+            await productManager.addProduct(product); // Método para agregar el producto
+
+            // Obtén los parámetros de consulta
+            const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null }
+
+            // Llama a getAllProducts para obtener la lista actualizada
+            const { products } = await productManager.getAllProducts({ limit, page, sort, query: category });
+
+            // Emitir la lista actualizada a todos los clientes
+            io.emit('updatedProducts', products);
         } catch (error) {
-            console.error('Error al agregar producto:', error);
+            console.error('Error al agregar el producto:', error);
         }
     });
 
     socket.on('deleteProduct', async (productId) => {
-        await productManager.deleteProduct(productId);
-        const updatedProducts = await productManager.getAllProducts();
-        io.emit('updatedProducts', updatedProducts);
+        try {
+            const deletedProduct = await productManager.deleteProduct(productId);
+            if (deletedProduct) {
+                console.log('Producto eliminado:', deletedProduct);
+
+                // Obtén los parámetros de consulta
+                
+                 const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null };
+
+                // Llama a getAllProducts para obtener la lista actualizada
+                const { products } = await productManager.getAllProducts({ limit, page, sort, query: category });
+
+                // Emitir la lista actualizada de productos
+                io.emit('updatedProducts', products);
+            } else {
+                console.log('No se pudo eliminar el producto');
+            }
+        } catch (error) {
+            console.error('Error al eliminar el producto:', error);
+        }
     });
 });
 

@@ -13,6 +13,7 @@
 <ul id="productsList">
     {{#each products}}
     <li>
+        <div class="cat">{{category}}</div>
         <div class="product-title">{{title}}</div>
         <div class="product-price">Precio: ${{price}}</div>
         <button onclick="deleteProduct('{{_id}}')">Eliminar</button>
@@ -23,6 +24,12 @@
 <!-- Formulario para agregar un nuevo producto -->
 <form id="productForm">
     <input type="text" id="title" placeholder="Título del producto" required>
+    <label for="category">Categoría:</label>
+    <select name="category" id="category" required>
+        {{#each categories}}
+        <option value="{{this}}">{{this}}</option>
+        {{/each}}
+    </select>
     <input type="number" id="price" placeholder="Precio del producto" required>
     <button type="submit">Agregar Producto</button>
 </form>

@@ -53,8 +53,6 @@ router.get('/', async (req, res) => {
             });
         }
 
-
-        console.log(products)
         // Renderizar la vista de productos en caso contrario
         res.render('home', {
             products,
@@ -90,7 +88,8 @@ router.post('/', async (req, res) => {
 
         // Emite la lista de productos actualizada después de agregar el nuevo producto
         if (io) {
-            const updatedProducts = await productManager.getAllProducts(); // Obtener la lista actualizada de productos
+            // Obtener la lista actualizada de productos
+            const { products: updatedProducts } = await productManager.getAllProducts();
             io.emit('updatedProducts', updatedProducts);
         }
 
@@ -133,15 +132,14 @@ router.delete('/:pid', async (req, res) => {
         // Intentar eliminar el producto
         const deletedProduct = await productManager.deleteProduct(productId);
 
-        if (!deletedProduct) {
-            console.log(`Producto no encontrado con ID: ${productId}`);
-            return res.status(404).json({ message: 'Producto no encontrado' });
-        }
-
-        // Emitir la actualización de productos si el socket está disponible
-        if (io) {
-            const products = await productManager.getAllProducts();
-            io.emit('updatedProducts', products);
+        if (deletedProduct) {
+            if (io) {
+                const { products: updatedProducts } = await productManager.getAllProducts();
+                io.emit('updatedProducts', updatedProducts);
+            }
+            res.status(204).end();
+        } else {
+            res.status(404).json({ message: 'Producto no encontrado' });
         }
 
         console.log(`Producto con ID ${productId} eliminado`);

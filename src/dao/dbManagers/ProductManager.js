@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 class ProductManager {
 
-    async getAllProducts({ limit, page, sort, query }) {
+    async getAllProducts({ limit = 10, page = 1, sort = 'asc', query = '' }) {
         try {
             // Construir el filtro de la consulta
             const filter = query ? { category: new RegExp(query, 'i') } : {};
@@ -16,6 +16,7 @@ class ProductManager {
                 page,
                 limit,
                 sort: sortOption,
+                query
             };
 
             // Llamar al método paginate de Mongoose
@@ -41,7 +42,7 @@ class ProductManager {
             };
         } catch (error) {
             console.error('Error al obtener productos:', error);
-            return { products: [], totalProducts: 0 };
+            return { products: [], totalProducts: 0, prevLink: null, nextLink: null, page: 1, categories: [] };
         }
     }
 
@@ -58,8 +59,17 @@ class ProductManager {
     }
 
     async addProduct(productData) {
+        const generatedCode = `CODE-${Date.now()}`
+        
+        const newProductData = { ...productData, code: generatedCode }
+        
+        if (!newProductData.code) {
+            throw new Error('El campo "code" es obligatorio y no puede ser nulo');
+        }
+        console.log('Datos del producto:', newProductData);
+
         try {
-            const newProduct = new Product(productData); // Crea una nueva instancia del modelo
+            const newProduct = new Product(newProductData); // Crea una nueva instancia del modelo
             await newProduct.save(); // Guarda el nuevo producto en la base de datos
             console.log('Producto agregado desde MongoDb:', newProduct);
             return newProduct;
@@ -81,7 +91,7 @@ class ProductManager {
 
     async deleteProduct(id) {
         try {
-            const deletedProduct = await Product.findByIdAndDelete(id).lean(); // Elimina y obtiene el producto por ID
+            const deletedProduct = await Product.findByIdAndDelete(id).lean();
             if (deletedProduct) {
                 console.log('Producto a eliminar encontrado en MongoDb:', deletedProduct);
                 return deletedProduct; // Retorna el producto eliminado
