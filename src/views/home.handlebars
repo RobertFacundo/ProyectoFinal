@@ -36,6 +36,16 @@
         <div class="cat">{{category}}</div>
         <div class="product-title">{{title}}</div>
         <div class="product-price">Precio: ${{price}}</div>
+        <a href="/api/products/{{_id}}">Ver Detalles</a>
+        <form action="/api/carts/{{cartId}}/products/{{_id}}" method="POST">
+            <label for="cartId">Seleccionar Carrito:</label>
+            <select name="cartId" id="cartId">
+                {{#each carts}}
+                <option value="{{this._id}}">{{this._id}}</option>
+                {{/each}}
+            </select>
+            <button type="submit">Agregar al Carrito</button>
+        </form>
     </li>
     {{/each}}
 </ul>

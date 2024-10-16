@@ -15,7 +15,9 @@
     <li>
         <div class="cat">{{category}}</div>
         <div class="product-title">{{title}}</div>
+        <div>{{description}}</div>
         <div class="product-price">Precio: ${{price}}</div>
+        <a href="/api/products/{{_id}}">Ver Detalles</a>
         <button onclick="deleteProduct('{{_id}}')">Eliminar</button>
     </li>
     {{/each}}

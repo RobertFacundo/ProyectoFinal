@@ -71,12 +71,18 @@ router.get('/', async (req, res) => {
 
 // Obtener un producto por su ID
 router.get('/:pid', async (req, res) => {
-    const product = await productManager.getProductsById(req.params.pid);
-    if (product) {
-        res.json(product);
-        console.log('Producto encontrado:', product)
-    } else {
-        res.status(404).json({ message: 'Producto no encontrado' });
+    try {
+        const product = await productManager.getProductsById(req.params.pid);
+        if (product) {
+            // Asegúrate de pasar el cartId si es necesario
+            res.render('productDetails', { product }); // Aquí se pasa el producto
+            console.log('Producto encontrado:', product);
+        } else {
+            res.status(404).json({ message: 'Producto no encontrado' });
+        }
+    } catch (error) {
+        console.error('Error al obtener el producto:', error);
+        res.status(500).json({ message: 'Error interno del servidor' });
     }
 });
 

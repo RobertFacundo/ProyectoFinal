@@ -66,6 +66,28 @@ class CartManager {
             return res.status(500).json({ message: 'No se pudo agregar el producto al carrito.' }); 
         }
     }
+
+      // Nueva función para eliminar un carrito
+      async deleteCart(cartId) {
+        try {
+            const result = await Cart.findByIdAndDelete(cartId); // Usa Mongoose para eliminar el carrito por ID
+            return result; // Retorna el resultado de la eliminación
+        } catch (error) {
+            console.error('Error al eliminar carrito:', error);
+            return null; // Manejo de error
+        }
+    }
+
+    async getCartWithProducts(cartId) {
+        try {
+            const cart = await Cart.findById(cartId).populate('products.product'); // Asegúrate de que la relación sea correcta
+            console.log('Carrito con productos poblados:', JSON.stringify(cart, null, 2)); 
+            return cart;
+        } catch (error) {
+            console.error('Error al obtener carrito con productos:', error);
+            return null;
+        }
+    }
 }
 
 export default CartManager;

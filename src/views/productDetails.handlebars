@@ -1,0 +1,14 @@
+<h1>Detalles del Producto</h1>
+<div class="product-detail">
+    <div class="cat">{{product.category}}</div>
+    <h2>{{product.title}}</h2> <!-- Asegúrate de usar product. para acceder -->
+    <div class="product-price">Precio: ${{product.price}}</div>
+    <div class="product-description">{{product.description}}</div>
+
+    <form action="/api/carts/{{../cartId}}/products" method="POST">
+        <input type="hidden" name="productId" value="{{_id}}">
+        <input type="hidden" name="cartId" value="{{../cartId}}"> <!-- Añadir el cartId -->
+        <button type="submit">Agregar al Carrito</button>
+    </form>
+</div>
+<a href="/api/products">Volver a la lista de productos</a>

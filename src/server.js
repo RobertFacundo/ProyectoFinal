@@ -9,9 +9,12 @@ import { router as productsRouter, setSocketServer } from './routes/products.js'
 import cartsRouter from './routes/carts.js'; // Importación de cartsRouter
 import dotenv from 'dotenv'; // Importar dotenv
 
+import methodOverride from 'method-override';
+
 import Product from './dao/models/Product.js';
 import mongoose from 'mongoose';
 import productManager from './config/productManager.js';
+import Cart from './dao/models/Cart.js';
 
 // Configurar dotenv
 dotenv.config(); // Cargar las variables de entorno
@@ -60,9 +63,12 @@ app.set('views', path.join(__dirname, 'views')); // Usar path para evitar proble
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+// Middleware para sobrescribir métodos
+app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname, 'public'))); // Asegurarse de que la ruta sea correcta
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
+
 
 // Inyectar el servidor de Socket.io en el router de productos
 setSocketServer(io);
@@ -88,12 +94,14 @@ app.get('/', async (req, res) => {
             return res.status(404).render('404');
         }
 
+         // Obtener todos los carritos directamente aquí
+         const carts = await Cart.find(); 
 
         // Generar enlaces para la paginación
         const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
         const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
 
-        res.render('home', { products, prevLink, nextLink, totalPages, page: currentPage, categories }); // Pasar 'currentPage' a la vista
+        res.render('home', { products, prevLink, nextLink, totalPages, page: currentPage, categories, carts }); // Pasar 'currentPage' a la vista
         console.log(products);
     } catch (error) {
         console.error('Error al obtener productos:', error);
@@ -168,8 +176,8 @@ io.on('connection', (socket) => {
                 console.log('Producto eliminado:', deletedProduct);
 
                 // Obtén los parámetros de consulta
-                
-                 const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null };
+
+                const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null };
 
                 // Llama a getAllProducts para obtener la lista actualizada
                 const { products } = await productManager.getAllProducts({ limit, page, sort, query: category });

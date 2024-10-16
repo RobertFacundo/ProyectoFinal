@@ -1,0 +1,29 @@
+<h1>Lista de Carritos</h1>
+{{#if carts.length}}
+<div class="cart-container">
+    {{#each carts}}
+    <div class="cart">
+        <h2>Carrito ID: {{_id}}</h2>
+        <ul>
+            {{#each products}}
+            <li>Producto ID: {{this.product}}, Cantidad: {{this.quantity}}</li>
+            {{/each}}
+        </ul>
+        <a href="/api/carts/{{_id}}">Ver detalles</a>
+        <form action="/api/carts/{{_id}}?_method=DELETE" method="POST">
+            <button type="submit">Eliminar carrito</button>
+        </form>
+    </div>
+    {{/each}}
+</div>
+<form action="/api/carts" method="POST">
+    <button type="submit">Agregar nuevo carrito</button>
+</form>
+{{else}}
+<p>No hay carritos disponibles.</p>
+{{/if}}
+
+<a href="/realtimeproducts">Real time products...</a>
+<a href="/api/products">products</a>
+<a href="/api/carts">Carts</a>
+<a href="/">Home</a>

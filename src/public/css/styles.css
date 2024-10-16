@@ -105,3 +105,43 @@ a:hover {
 nav{
     text-align: center;
 }
+
+/* Contenedor general de los carritos */
+.cart-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px; /* Espacio entre las cajas */
+    margin-top: 20px;
+}
+
+/* Estilo de cada caja de carrito */
+.cart {
+    flex: 0 1 32%; /* Las cajas ocupan el 32% para dejar espacio entre ellas */
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 16px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+}
+
+/* Efecto de hover para que las cajas tengan una ligera elevación */
+.cart:hover {
+    transform: scale(1.02);
+}
+
+/* Estilos adicionales */
+h2 {
+    font-size: 18px;
+    color: #333;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+li {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #555;
+}
