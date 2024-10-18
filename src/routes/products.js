@@ -5,11 +5,14 @@ import path from 'path';
 import mongoose from 'mongoose';
 import __dirname from '../utils.js';
 
+import Cart from '../dao/models/Cart.js';
+
+
 const router = express.Router();
 let io;
 
 
-// Obtener todos los productos
+// Obteniene todos los productos
 router.get('/', async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10; // Establecer un límite predeterminado
@@ -28,16 +31,19 @@ router.get('/', async (req, res) => {
         console.log('Respuesta del Product Manager:', { products, totalProducts, prevLink, nextLink });
 
 
-        // Calcular totalPages a partir de totalProducts
+        // Calcula totalPages a partir de totalProducts
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Verificar si la página solicitada es válida
+        // Verifica si la página solicitada es válida
         if (page > totalPages || page < 1) {
             // Redirigir a la página 404
             return res.status(404).render('404');
         }
 
-        // Si hay parámetros de consulta, devolver los productos en JSON con el formato solicitado
+         // Obtiene todos los carritos directamente aquí
+         const carts = await Cart.find(); 
+
+        // Si hay parámetros de consulta, devuelve los productos en JSON con el formato solilicitado del enunciado
         if (req.query.limit || req.query.page || req.query.sort || req.query.category) {
             return res.json({
                 status: 'success',
@@ -53,14 +59,15 @@ router.get('/', async (req, res) => {
             });
         }
 
-        // Renderizar la vista de productos en caso contrario
+        // Renderiza la vista de productos en caso contrario
         res.render('home', {
             products,
             totalProducts,
             prevLink,
             nextLink,
-            page, // Aquí mantén 'page' para la paginación en la vista
+            page,
             totalPages: Math.ceil(totalProducts / limit),
+            carts
         });
     } catch (error) {
         console.error('Error al obtener productos:', error);
@@ -69,13 +76,13 @@ router.get('/', async (req, res) => {
 });
 
 
-// Obtener un producto por su ID
+// Obtiene un producto por su ID
 router.get('/:pid', async (req, res) => {
     try {
         const product = await productManager.getProductsById(req.params.pid);
         if (product) {
-            // Asegúrate de pasar el cartId si es necesario
-            res.render('productDetails', { product }); // Aquí se pasa el producto
+           
+            res.render('productDetails', { product }); 
             console.log('Producto encontrado:', product);
         } else {
             res.status(404).json({ message: 'Producto no encontrado' });
@@ -86,7 +93,7 @@ router.get('/:pid', async (req, res) => {
     }
 });
 
-// Agregar un nuevo producto
+// Agrega un nuevo producto
 router.post('/', async (req, res) => {
     try {
         // Agrega el nuevo producto
@@ -108,7 +115,7 @@ router.post('/', async (req, res) => {
     }
 });
 
-// Actualizar un producto existente
+// Actualiza un producto existente
 router.put('/:pid', async (req, res) => {
     const updatedProduct = await productManager.updatedProduct(req.params.pid, req.body);
     if (updatedProduct) {
@@ -124,18 +131,17 @@ router.put('/:pid', async (req, res) => {
     }
 });
 
-// Eliminar un producto por su ID
+// Elimina un producto por su ID
 router.delete('/:pid', async (req, res) => {
-    const productId = req.params.pid; // Obtener el ID del producto
+    const productId = req.params.pid; // Obtiene el ID del producto
 
-    // Verificar si el ID es un ObjectId válido (solo si usas MongoDB)
+    // Verifica si el ID es un ObjectId válido (solo si se usa MongoDB)
     if (!mongoose.Types.ObjectId.isValid(productId)) {
         console.log(`ID inválido recibido: ${productId}`);
         return res.status(400).json({ message: 'ID inválido' });
     }
 
     try {
-        // Intentar eliminar el producto
         const deletedProduct = await productManager.deleteProduct(productId);
 
         if (deletedProduct) {
@@ -149,7 +155,6 @@ router.delete('/:pid', async (req, res) => {
         }
 
         console.log(`Producto con ID ${productId} eliminado`);
-        // Responder con un código de estado 204 (Sin contenido)
         res.status(204).end();
     } catch (error) {
         console.error('Error al eliminar el producto:', error);
@@ -158,7 +163,7 @@ router.delete('/:pid', async (req, res) => {
 });
 
 
-// Establecer el servidor de sockets
+// Establece el servidor de sockets
 function setSocketServer(socketServer) {
     io = socketServer;
 }

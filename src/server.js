@@ -11,14 +11,13 @@ import dotenv from 'dotenv'; // Importar dotenv
 
 import methodOverride from 'method-override';
 
-import Product from './dao/models/Product.js';
 import mongoose from 'mongoose';
 import productManager from './config/productManager.js';
 import Cart from './dao/models/Cart.js';
 
 // Configurar dotenv
 dotenv.config(); // Cargar las variables de entorno
-console.log('USE_MONGODB:', process.env.USE_MONGODB); // Im
+console.log('USE_MONGODB:', process.env.USE_MONGODB); 
 
 // Configuración básica de Express
 const app = express();
@@ -58,50 +57,50 @@ const hbs = createHandlebars({
 // Configurar el motor de plantillas
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'handlebars');
-app.set('views', path.join(__dirname, 'views')); // Usar path para evitar problemas con las rutas
+app.set('views', path.join(__dirname, 'views')); 
 
 // Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Middleware para sobrescribir métodos
 app.use(methodOverride('_method'));
-app.use(express.static(path.join(__dirname, 'public'))); // Asegurarse de que la ruta sea correcta
+app.use(express.static(path.join(__dirname, 'public'))); 
 app.use('/api/products', productsRouter);
 app.use('/api/carts', cartsRouter);
 
 
-// Inyectar el servidor de Socket.io en el router de productos
+// Inyecta el servidor de Socket.io en el router de productos
 setSocketServer(io);
 
 
 // Ruta para la página principal
 app.get('/', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 10; // Establecer el límite predeterminado
-        const currentPage = parseInt(req.query.page) || 1; // Cambiar 'page' a 'currentPage'
-        const sort = req.query.sort; // Obtener el método de ordenamiento de los parámetros de consulta
-        const query = req.query.category; // Obtener la categoría para filtrar productos
+        const limit = parseInt(req.query.limit) || 10; // Establece el límite predeterminado
+        const currentPage = parseInt(req.query.page) || 1; // Cambia 'page' a 'currentPage'
+        const sort = req.query.sort; // Obtiene el método de ordenamiento de los parámetros de consulta
+        const query = req.query.category; // Obtiene la categoría para filtrar productos
 
-        // Llamar al método getAllProducts y desestructurar los productos
+        // Llama al método getAllProducts y desestructurar los productos
         const { products, totalProducts, categories } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
 
-        // Calcular totalPages a partir de totalProducts
+        // Calcula totalPages a partir de totalProducts
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Verificar si la página solicitada es válida
+        // Verifica si la página solicitada es válida
         if (currentPage > totalPages || currentPage < 1) { // Usar 'currentPage' aquí
             // Redirigir a la página 404
             return res.status(404).render('404');
         }
 
-         // Obtener todos los carritos directamente aquí
+         // Obtiene todos los carritos directamente aquí
          const carts = await Cart.find(); 
 
-        // Generar enlaces para la paginación
+        // Genera enlaces para la paginación
         const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
         const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
 
-        res.render('home', { products, prevLink, nextLink, totalPages, page: currentPage, categories, carts }); // Pasar 'currentPage' a la vista
+        res.render('home', { products, prevLink, nextLink, totalPages, page: currentPage, categories, carts }); 
         console.log(products);
     } catch (error) {
         console.error('Error al obtener productos:', error);
@@ -112,24 +111,20 @@ app.get('/', async (req, res) => {
 // Ruta para la página de productos en tiempo real
 app.get('/realtimeproducts', async (req, res) => {
     try {
-        const limit = parseInt(req.query.limit) || 10; // Establecer el límite predeterminado
-        const currentPage = parseInt(req.query.page) || 1; // Establecer la página predeterminada
-        const sort = req.query.sort; // Obtener el método de ordenamiento de los parámetros de consulta
-        const query = req.query.category; // Obtener la categoría para filtrar productos
+        const limit = parseInt(req.query.limit) || 10;
+        const currentPage = parseInt(req.query.page) || 1; 
+        const sort = req.query.sort; 
+        const query = req.query.category;
 
-        // Llamar al método getAllProducts y desestructurar los productos
+        
         const { products, totalProducts, categories } = await productManager.getAllProducts({ limit, page: currentPage, sort, query });
-
-        // Calcular totalPages a partir de totalProducts
+        
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Verificar si la página solicitada es válida
-        if (currentPage > totalPages || currentPage < 1) { // Usar 'currentPage' aquí
-            // Redirigir a la página 404
+        if (currentPage > totalPages || currentPage < 1) {
             return res.status(404).render('404');
         }
 
-        // Generar enlaces para la paginación
         const prevLink = currentPage > 1 ? `${req.baseUrl}?limit=${limit}&page=${currentPage - 1}&sort=${sort || ''}&category=${query || ''}` : null;
         const nextLink = currentPage < totalPages ? `${req.baseUrl}?limit=${limit}&page=${currentPage + 1}&sort=${sort || ''}&category=${query || ''}` : null;
 
@@ -143,11 +138,11 @@ app.get('/realtimeproducts', async (req, res) => {
 
 const queryParamsStore = {};
 
-// Configurar Socket.io para manejar eventos en tiempo real
+// Configura Socket.io para manejar eventos en tiempo real
 io.on('connection', (socket) => {
     console.log('Nuevo cliente conectado');
 
-    // Configurar los parámetros de consulta al conectarse
+    // Configura los parámetros de consulta al conectarse
     socket.on('setQueryParams', (params) => {
         queryParamsStore[socket.id] = params; // Almacenar los parámetros por ID de socket
     });
@@ -156,13 +151,13 @@ io.on('connection', (socket) => {
         try {
             await productManager.addProduct(product); // Método para agregar el producto
 
-            // Obtén los parámetros de consulta
+            // parámetros de consulta
             const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null }
 
             // Llama a getAllProducts para obtener la lista actualizada
             const { products } = await productManager.getAllProducts({ limit, page, sort, query: category });
 
-            // Emitir la lista actualizada a todos los clientes
+            // Emite la lista actualizada a todos los clientes
             io.emit('updatedProducts', products);
         } catch (error) {
             console.error('Error al agregar el producto:', error);
@@ -175,14 +170,14 @@ io.on('connection', (socket) => {
             if (deletedProduct) {
                 console.log('Producto eliminado:', deletedProduct);
 
-                // Obtén los parámetros de consulta
+                // Obtiene los parámetros de consulta
 
                 const { limit, page, sort, category } = queryParamsStore[socket.id] || { limit: 10, page: 1, sort: null, category: null };
 
                 // Llama a getAllProducts para obtener la lista actualizada
                 const { products } = await productManager.getAllProducts({ limit, page, sort, query: category });
 
-                // Emitir la lista actualizada de productos
+                // Emite la lista actualizada de productos
                 io.emit('updatedProducts', products);
             } else {
                 console.log('No se pudo eliminar el producto');
@@ -229,12 +224,12 @@ app.use((req, res, next) => {
 // Middleware para manejar errores generales
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Algo salió mal.'); // Puedes también renderizar otra plantilla aquí para errores 500.
+    res.status(500).send('Algo salió mal.'); 
 });
 //---------------------------
 
 
-// Iniciar el servidor
+// Inicia el servidor
 httpServer.listen(PORT, () => {
     console.log(`Servidor escuchando en port ${PORT}`);
 });
